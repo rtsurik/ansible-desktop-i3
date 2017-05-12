@@ -1,0 +1,6 @@
+---
+- name: restart xdm
+  service: name=xdm state=restarted
+
+- name: reload apt
+  apt: update_cache=yes  

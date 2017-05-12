@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# Import the configuration from .Xresources
+xrdb -merge .Xresources
+
+# Wallpaper
+feh --bg-scale /home/{{desktop_user}}/.wallpaper.png
+
+# Keyboard layout
+sleep 3 && setxkbmap -layout us,ru,ua -option grp:ctrl_shift_toggle,grp_led:scroll,compose:ralt &
+
+# SSH authentication agent
+#eval `ssh-agent -s`
+
+# Disks automounting
+/usr/bin/udisks-glue &
+
+# Clipboard manager
+/usr/bin/clipit &
+
+# Left hand mouse
+#xmodmap -e "pointer = 3 2 1"
+
+# Pulseaudio
+/usr/bin/pulseaudio --start

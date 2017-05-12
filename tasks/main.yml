@@ -1,0 +1,125 @@
+---
+##
+## Additional repos for Debian 8 jessie
+##
+- name: Make sure that the Debian Mozilla team APT key is installed
+  apt_key:
+    id: 06C4AE2A
+    url: "https://mozilla.debian.net/archive.asc"
+    state: present
+  when: ansible_distribution == 'Debian' and ansible_distribution_release == 'jessie'
+
+- name: Add the jessie-backports repo
+  apt_repository: repo='deb http://ftp.debian.org/debian jessie-backports main' state=present update_cache=yes
+  when: ansible_distribution == 'Debian' and ansible_distribution_release == 'jessie'
+
+- name: Add the firefox-release repo
+  apt_repository: repo='deb http://mozilla.debian.net/ jessie-backports firefox-esr' state=present update_cache=yes
+  when: ansible_distribution == 'Debian' and ansible_distribution_release == 'jessie'
+
+##
+## Everything else applies to Debian unstable and Ubuntu
+##
+- name: Install i3 components
+  apt: name={{item}} state=installed
+  with_items:
+    - i3-wm
+    - i3lock
+    - suckless-tools
+    - i3status
+    - i3blocks
+    - dunst
+  when: ansible_os_family == 'Debian'
+
+- name: Install Xorg and xdm
+  apt: name={{item}} state=installed
+  with_items:
+    - xorg
+    - xterm
+    - xdm
+  notify: restart xdm
+  when: ansible_os_family == 'Debian'
+
+## Restart Xdm
+- meta: flush_handlers
+
+- name: Install fonts and themes
+  apt: name={{item}} state=installed
+  with_items:
+    - fonts-font-awesome
+    - fonts-noto
+    - dmz-cursor-theme
+  when: ansible_os_family == 'Debian'
+
+- name: Install some applications
+  apt: name={{item}} state=installed
+  with_items:
+    - feh
+    - pulseaudio
+  when: ansible_os_family == 'Debian'
+
+- name: Install Firefox on Debian stable (backports)
+  apt: name=firefox-esr state=present default_release=jessie-backports
+  when: ansible_distribution == 'Debian' and ansible_distribution_release == 'jessie'
+
+- name: Install Firefox (other distros)
+  apt: name=firefox state=present 
+  when: ansible_os_family == 'Debian' and ansible_distribution_release != 'jessie'
+
+##
+## Display the prompt and ask to login to the desktop environment
+##
+- name: Pause and wait for the user to login
+  pause: prompt="Login to the X environment and press Enter, need to detect your displays."
+
+##
+## Works with one or two displays
+##
+- name: Detect displays
+  shell: /usr/bin/xrandr --current | awk '/ connected/{ print $1 }'
+  environment: 
+    DISPLAY: ":0.0"
+  become: "{{desktop_user}}"
+  register: xrandr_out
+  ignore_errors: yes
+  changed_when: false
+
+- name: Get the first display name
+  set_fact: display_first="{{xrandr_out.stdout_lines[0]}}"
+
+- name: Get the last display name
+  set_fact: display_last="{{xrandr_out.stdout_lines[-1]}}"
+
+- name: Create the i3 directory
+  file: path=/home/{{desktop_user}}/.i3 state=directory owner={{desktop_user}} group={{desktop_user}} mode=0755
+  when: ansible_os_family == 'Debian'
+
+##
+## Need this interface name for i3blocks
+##
+- name: Get the first network interface name
+  shell: ip link |grep "state UP" | head -n1| sed "s/...\([a-z0-9]*\):.*/\1/"
+  register: iface_output
+  ignore_errors: yes
+  changed_when: false
+
+- name: Register the interface name
+  set_fact: iface_name={{iface_output.stdout}}
+
+##
+## Deploy the configs
+##
+- name: Deploy i3 configs from templates
+  template: src={{ item.src }} dest={{ item.dest }} owner={{desktop_user}} group={{desktop_user}} mode={{ item.mode }}
+  with_items:
+    - { src: 'files/i3-config.j2', dest: '/home/{{desktop_user}}/.i3/config', mode: '0644' }
+    - { src: 'files/i3blocks.conf.j2', dest: '/home/{{desktop_user}}/.i3/i3blocks.conf', mode: '0644'}
+    - { src: 'files/i3-autostart.j2', dest: '/home/{{desktop_user}}/.i3/autostart', mode: '0755' }
+  when: ansible_os_family == 'Debian'
+
+- name: Copy other i3 configs
+  copy: src={{ item.src }} dest={{ item.dest }} owner={{desktop_user}} group={{desktop_user}} mode={{ item.mode }}
+  with_items:
+    - { src: 'files/xresources', dest: '/home/{{desktop_user}}/.Xresources', mode: '0644' }
+  notify: restart xdm
+  when: ansible_os_family == 'Debian'

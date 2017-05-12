@@ -1,0 +1,202 @@
+# i3 config file (v4)
+#
+
+# Use Alt as a mod-key
+set $mod Mod1
+
+# Font
+font pango:Droid Sans Mono 8
+
+# Use Mouse-$mod to drag floating windows to their wanted position
+floating_modifier $mod
+
+# Start xterm with Alt-Enter
+bindsym $mod+Return exec xterm
+
+# Kill the focused window with Alt-Shift-Q
+bindsym $mod+Shift+q kill
+
+# Lock the screen with Alt-Ctl-L
+bindsym $mod+Control+l exec i3lock --image /home/{{desktop_user}}/.wallpaper.png --tiling
+
+# Start dmenu with Alt-D
+bindsym $mod+d exec dmenu_run
+
+# Change focus 
+bindsym $mod+j focus left
+bindsym $mod+k focus down
+bindsym $mod+l focus up
+bindsym $mod+semicolon focus right
+
+bindsym $mod+Left focus left
+bindsym $mod+Down focus down
+bindsym $mod+Up focus up
+bindsym $mod+Right focus right
+
+# Move focused window
+bindsym $mod+Shift+j move left
+bindsym $mod+Shift+k move down
+bindsym $mod+Shift+l move up
+bindsym $mod+Shift+semicolon move right
+
+bindsym $mod+Shift+Left move left
+bindsym $mod+Shift+Down move down
+bindsym $mod+Shift+Up move up
+bindsym $mod+Shift+Right move right
+
+# Split in horizontal/vertical orientation with Alt-H and Alt-V
+bindsym $mod+h split h
+bindsym $mod+v split v
+
+# Enter fullscreen mode for the focused container with Alt-F
+bindsym $mod+f fullscreen
+
+# Change container layout (stacked, tabbed, toggle split)
+bindsym $mod+s layout stacking
+bindsym $mod+w layout tabbed
+bindsym $mod+e layout toggle split
+
+# Toggle tiling / floating
+bindsym $mod+Shift+space floating toggle
+
+# change focus between tiling / floating windows
+bindsym $mod+space focus mode_toggle
+
+# Focus the parent container
+bindsym $mod+a focus parent
+
+# Focus the child container
+bindsym $mod+z focus child
+
+# Workspace icons
+set $WS1 1:
+set $WS2 2:
+set $WS3 3:
+set $WS4 4:
+set $WS5 5:
+set $WS6 6:
+
+# Terminals on the first display, all other workspaces go on the last/second display;
+workspace $WS1 output {{display_first}}
+workspace $WS2 output {{display_last}}
+workspace $WS3 output {{display_last}}
+workspace $WS4 output {{display_last}}
+workspace $WS5 output {{display_last}}
+workspace $WS6 output {{display_last}}
+
+# Terminals
+assign [class="XTerm"] $WS1
+
+# Mozilla Firefox
+assign [class="Firefox"] $WS2
+
+# Messengers and other floating crap e.g., Keepass
+assign [class="Skype"] $WS3
+assign [class="Pidgin"] $WS3
+assign [class="KeePass2"] $WS3
+assign [class="HipChat"] $WS3
+
+for_window [class="skypeforlinux"] floating enable
+for_window [class="Pidgin"] floating enable
+for_window [class="HipChat"] floating enable
+
+for_window [class="KeePass2"] floating enable
+for_window [title="KeePass"] floating enable
+
+for_window [title="Open Database File"] floating enable
+#for_window [title="Open Database File"] move absolute position 600px 300px
+#for_window [title="Open Database File"] move container to workspace $WS3
+
+# Mozilla Thunderbird
+assign [class="Thunderbird"] $WS4
+
+# Sublime Text and Libreoffice
+assign [class="Sublime_text"] $WS5
+assign [class="libreoffice-calc"] $WS5
+assign [class="libreoffice-startcenter"] $WS5
+
+# Multimedia, games
+assign [class="Audacious"] $WS6
+for_window [class="Audacious"] floating enable
+
+# Crappy Java apps
+for_window [class="sun-awt-X11-XFramePeer"] floating enable
+for_window [class="sun-awt-X11-XDialogPeer"] floating enable
+for_window [class="sun-awt-X11-XContentWindow"] floating enable
+for_window [class="net-sourceforge-jnlp-runtime-Boot"] floating enable
+
+for_window [class="tw-com-aten-ikvm-KVMMain"] floating enable
+
+# Apps not bound to any particular space
+for_window [class="feh"] floating enable
+for_window [class="mplayer2"] floating enable
+
+# Switch workplaces with Alt+num
+bindsym $mod+1 workspace $WS1
+bindsym $mod+2 workspace $WS2
+bindsym $mod+3 workspace $WS3
+bindsym $mod+4 workspace $WS4
+bindsym $mod+5 workspace $WS5
+bindsym $mod+6 workspace $WS6
+
+# Move focused with Alt+Shift+num
+bindsym $mod+Shift+1 move container to workspace $WS1
+bindsym $mod+Shift+2 move container to workspace $WS2
+bindsym $mod+Shift+3 move container to workspace $WS3
+bindsym $mod+Shift+4 move container to workspace $WS4
+bindsym $mod+Shift+5 move container to workspace $WS5
+bindsym $mod+Shift+6 move container to workspace $WS6
+
+# Reload the configuration file
+bindsym $mod+Shift+c reload
+
+# Restart i3 inplace (preserves your layout/session, can be used to upgrade i3)
+bindsym $mod+Shift+r restart
+
+# Exit i3 with Alt-Shift-E
+bindsym $mod+Shift+e exec "i3-nagbar -t warning -m 'Leaving so soon?' -b 'Yes, exit i3' 'i3-msg exit'"
+
+# Resize window with keyboard, switch to resize mode with Alt-R
+mode "resize" {
+        # Resize window using the arrow keys
+        bindsym Left resize shrink width 10 px or 10 ppt
+        bindsym Down resize grow height 10 px or 10 ppt
+        bindsym Up resize shrink height 10 px or 10 ppt
+        bindsym Right resize grow width 10 px or 10 ppt
+
+        # Back to normal: Enter or Escape
+        bindsym Return mode "default"
+        bindsym Escape mode "default"
+}
+
+bindsym $mod+r mode "resize"
+
+# Start i3blocks status bar
+bar {
+  status_command /usr/bin/i3blocks -c ~/.i3/i3blocks.conf
+
+  font pango:Droid Sans Mono 8
+  position bottom
+
+  colors {
+    background              #1b191b
+    statusline              #e6e6e6
+    separator               #1b191b
+    # class                 border  backgr. text
+    focused_workspace       #1b191b #1b191b #29a329
+    active_workspace        #1b191b #1b191b #808080
+    inactive_workspace      #1b191b #1b191b #808080
+    urgent_workspace        #1b191b #1b191b #db4d4d
+  }
+
+} # bar
+
+# class                 border  backgr. text    indicator
+client.focused          #211F21 #3B3B3B #b2b2b2 #3C3836
+client.focused_inactive #211F21 #211F21 #666666 #3C3836
+client.unfocused        #211F21 #211F21 #666666 #3C3836
+client.urgent           #931616 #931616 #cbc8db #3c3836
+client.background       #
+
+# Automactically start my apps
+exec ~/.i3/autostart
